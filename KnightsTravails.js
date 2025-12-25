@@ -1,13 +1,19 @@
 const Node = (x, y, prev = null) => {
-    let _x = x;
-    let _y = y;
+    const _x = x;
+    const _y = y;
 
     let isVisited = false;
     let adjacentList = [];
     let prevNode = prev;
 
-
-    return {_x, _y, adjacentList};
+    return {
+        get x() {
+            return _x;
+        },
+        get y() {
+            return _y;
+        }
+        , prevNode, adjacentList};
 }
 
 const Graph = (start) => { 
@@ -61,16 +67,35 @@ const Graph = (start) => {
                 addToBoard(inputX, inputY, Node(inputX, inputY, board[x][y]));
             }
             board[x][y].adjacentList.push(board[inputX][inputY]);
+            board[inputX][inputY].prevNode = board[x][y];
         });
-        console.log(board);
     }
 
-    return {buildAdjacentList};
+    const printBoardArray = () => {
+        for (let i = 0; i < board.length; i++) {
+            for (let j = 0; j < board[i].length; j++) {
+                if (board[i][j]) {
+                    console.log(`board[${i}][${j}] = ${board[i][j].x}, ${board[i][j].y}`);
+                    if (board[i][j].prevNode !== null) {
+                        console.log("previous node: [" + board[i][j].prevNode.x + ", " + board[i][j].prevNode.y + "]");
+                    } else console.log("previous node: " + board[i][j].prevNode);
+                } else {
+                    console.log("empty");
+                }
+                console.log("----------------");
+            }
+            console.log();
+            console.log("next row: ");
+        }
+    }
+
+    return {buildAdjacentList, printBoardArray};
 }
 
 function knightMoves(start, end) {
     let graph = Graph(start);
     graph.buildAdjacentList(...start);
+    graph.printBoardArray();
 }
 
 knightMoves([2,2], [7, 7]);
