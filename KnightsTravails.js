@@ -1,9 +1,11 @@
+import Queue from 'yocto-queue';
+
 const Node = (x, y, prev = null) => {
     const _x = x;
     const _y = y;
 
     let isVisited = false;
-    let adjacentList = [];
+    let adjacentList = new Queue();
     let prevNode = prev;
 
     return {
@@ -13,7 +15,7 @@ const Node = (x, y, prev = null) => {
         get y() {
             return _y;
         }
-        , prevNode, adjacentList};
+        , isVisited, prevNode, adjacentList};
 }
 
 const Graph = (start) => { 
@@ -66,9 +68,30 @@ const Graph = (start) => {
             if (!board[inputX][inputY]) {
                 addToBoard(inputX, inputY, Node(inputX, inputY, board[x][y]));
             }
-            board[x][y].adjacentList.push(board[inputX][inputY]);
+            board[x][y].adjacentList.enqueue(board[inputX][inputY]);
             board[inputX][inputY].prevNode = board[x][y];
         });
+        return board[x][y].adjacentList;
+    }
+
+    const find = (endX, endY) => {
+        let queue = buildAdjacentList(head.x, head.y);
+        for (let i = 0; i < 20; i++) {
+            let node = queue.dequeue();
+            if (!node.isVisited) {
+                let newQueue = buildAdjacentList(node.x, node.y);
+                for (const node of newQueue) {
+                    queue.enqueue(node);
+                    console.log(queue.size)
+                }
+            }
+            console.log("x: " + node.x + "  &  y: " + node.y)
+            if (node.x == endX && node.y == endY) {
+                console.log("found it!!");
+                return;
+            }
+            node.isVisited = true;
+        }
     }
 
     const printBoardArray = () => {
@@ -89,13 +112,14 @@ const Graph = (start) => {
         }
     }
 
-    return {buildAdjacentList, printBoardArray};
+    return {buildAdjacentList, printBoardArray, find};
 }
 
 function knightMoves(start, end) {
     let graph = Graph(start);
     graph.buildAdjacentList(...start);
-    graph.printBoardArray();
+    graph.find(...end);
+    // graph.printBoardArray();
 }
 
 knightMoves([2,2], [7, 7]);
