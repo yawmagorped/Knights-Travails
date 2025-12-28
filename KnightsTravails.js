@@ -4,9 +4,9 @@ const Node = (x, y, prev = null) => {
     const _x = x;
     const _y = y;
 
-    let isVisited = false;
+    let _isVisited = false;
     let adjacentList = new Queue();
-    let prevNode = prev;
+    let _prevNode = prev;
 
     return {
         get x() {
@@ -14,24 +14,33 @@ const Node = (x, y, prev = null) => {
         },
         get y() {
             return _y;
+        },
+        get prevNode() {
+            return _prevNode;
+        },
+        set prevNode(value) {
+            _prevNode = value;
+        },
+        get isVisited() {
+            return _isVisited;
+        },
+        set isVisited(value) {
+            _isVisited = value;
         }
-        , isVisited, prevNode, adjacentList};
+        , adjacentList};
 }
 
-const Graph = (start) => { 
+const Graph = (startX, startY) => { 
     const BOARD_SIZE = 8;
 
-    let head = Node(...start);
     let board = [];
     for (let i = 0; i < BOARD_SIZE; i++) {
         board[i] = [];
+        for (let j = 0; j < BOARD_SIZE; j++) {
+            board[i].push(Node(i, j))
+        }
     }
-
-    const addToBoard = (x, y, node) => {
-        board[x][y] = node;
-    } 
-
-    addToBoard(...start, head);
+    let head = board[startX][startY];
 
     const isInBound = (x, y) => {
         if (x < BOARD_SIZE && x >= 0 && y < BOARD_SIZE && y >= 0)
@@ -65,32 +74,45 @@ const Graph = (start) => {
         }
 
         forEachAdjacent(x,y, (inputX, inputY) => {
-            if (!board[inputX][inputY]) {
-                addToBoard(inputX, inputY, Node(inputX, inputY, board[x][y]));
+            if(!board[inputX][inputY].isVisited) {
+                board[inputX][inputY].prevNode = board[x][y];
+                board[x][y].adjacentList.enqueue(board[inputX][inputY]);
             }
-            board[x][y].adjacentList.enqueue(board[inputX][inputY]);
-            board[inputX][inputY].prevNode = board[x][y];
         });
+
         return board[x][y].adjacentList;
     }
 
+    const tracePath = (node) => {
+        let path = [];
+        while(node !== null) {
+            console.log("x: " + node.x + " y: " + node.y);
+            path.push(node);
+            node = node.prevNode;
+        }
+        return path;
+    }
+
     const find = (endX, endY) => {
-        let queue = buildAdjacentList(head.x, head.y);
-        for (let i = 0; i < 20; i++) {
+        let queue = new Queue();
+        head.isVisited = true;
+        queue.enqueue(head);
+        while (queue.size > 0) {
             let node = queue.dequeue();
-            if (!node.isVisited) {
-                let newQueue = buildAdjacentList(node.x, node.y);
-                for (const node of newQueue) {
-                    queue.enqueue(node);
-                    console.log(queue.size)
+            
+            let newQueue = buildAdjacentList(node.x, node.y);
+            let count = 0;
+            for (const newNode of newQueue) {
+                if (!newNode.isVisited) {
+                    newNode.isVisited = true;
+                    queue.enqueue(newNode);
                 }
             }
-            console.log("x: " + node.x + "  &  y: " + node.y)
+            
             if (node.x == endX && node.y == endY) {
                 console.log("found it!!");
-                return;
+                return tracePath(node);
             }
-            node.isVisited = true;
         }
     }
 
@@ -116,10 +138,9 @@ const Graph = (start) => {
 }
 
 function knightMoves(start, end) {
-    let graph = Graph(start);
-    graph.buildAdjacentList(...start);
+    let graph = Graph(...start);
     graph.find(...end);
     // graph.printBoardArray();
 }
 
-knightMoves([2,2], [7, 7]);
+knightMoves([0,1], [7, 6]);
